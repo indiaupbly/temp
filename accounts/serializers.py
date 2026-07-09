@@ -52,5 +52,9 @@ class ChangePasswordSerializer(serializers.Serializer):
         return attrs
 
 
+class UserActivationSerializer(serializers.Serializer):
+    is_active = serializers.BooleanField()
+
+
 class EmptySerializer(serializers.Serializer):
     pass

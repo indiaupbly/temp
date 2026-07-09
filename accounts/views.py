@@ -3,12 +3,24 @@ from django.conf import settings
 from django.shortcuts import get_object_or_404
 from rest_framework import status
 from rest_framework.generics import GenericAPIView
-from rest_framework.permissions import AllowAny, IsAuthenticated
+from rest_framework.permissions import AllowAny, IsAdminUser, IsAuthenticated
 from rest_framework_simplejwt.exceptions import TokenError
 
 from accounts.models import User
-from accounts.serializers import ChangePasswordSerializer, EmptySerializer, LoginSerializer, UserSerializer
-from accounts.services import change_user_password, login_user, logout_user, refresh_user_tokens
+from accounts.serializers import (
+    ChangePasswordSerializer,
+    EmptySerializer,
+    LoginSerializer,
+    UserActivationSerializer,
+    UserSerializer,
+)
+from accounts.services import (
+    change_user_password,
+    login_user,
+    logout_user,
+    refresh_user_tokens,
+    set_user_active_status,
+)
 from accounts.utils import delete_token_cookie, set_token_cookie
 from common.responses import error_response, success_response, updated_response
 
@@ -16,6 +28,7 @@ from common.responses import error_response, success_response, updated_response
 class LoginView(GenericAPIView):
     serializer_class = LoginSerializer
     permission_classes = (AllowAny,)
+    authentication_classes = ()
 
     def post(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
@@ -32,6 +45,7 @@ class LoginView(GenericAPIView):
 class LogoutView(GenericAPIView):
     serializer_class = EmptySerializer
     permission_classes = (AllowAny,)
+    authentication_classes = ()
 
     def post(self, request, *args, **kwargs):
         logout_user(request.COOKIES.get(settings.JWT_REFRESH_COOKIE))
@@ -44,6 +58,7 @@ class LogoutView(GenericAPIView):
 class RefreshView(GenericAPIView):
     serializer_class = EmptySerializer
     permission_classes = (AllowAny,)
+    authentication_classes = ()
 
     def post(self, request, *args, **kwargs):
         try:
@@ -80,3 +95,24 @@ class ChangePasswordView(GenericAPIView):
         serializer.is_valid(raise_exception=True)
         change_user_password(target_user, serializer.validated_data["new_password"], changed_by=request.user)
         return updated_response("Password changed successfully.")
+
+
+class UserActivationView(GenericAPIView):
+    serializer_class = UserActivationSerializer
+    permission_classes = (IsAdminUser,)
+
+    def patch(self, request, user_id, *args, **kwargs):
+        target_user = get_object_or_404(User, pk=user_id)
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        changed = set_user_active_status(
+            target_user,
+            serializer.validated_data["is_active"],
+            changed_by=request.user,
+        )
+        action = "activated" if target_user.is_active else "deactivated"
+        message = f"User account {action} successfully." if changed else f"User account is already {action}."
+        return updated_response(message, {"user": UserSerializer(target_user).data})
+
+    def post(self, request, user_id, *args, **kwargs):
+        return self.patch(request, user_id, *args, **kwargs)
