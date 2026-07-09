@@ -13,14 +13,16 @@
       "
     >
       <h1>Welcome to AIFAS</h1>
-      <p>Hello {{ name }},</p>
-      <p>Your AIFAS account has been created.</p>
+      <p>Hello {{ name|default:user.name }},</p>
+      <p>Your AIFAS account has been created and activated.</p>
+      <p><strong>Email:</strong> {{ email|default:user.email }}</p>
+      {% if temporary_password or password %}
       <p>
-        <strong>Email:</strong> {{ email }}<br /><strong
-          >Temporary password:</strong
-        >
-        {{ temporary_password }}
+        <strong>Temporary password:</strong>
+        {{ temporary_password|default:password }}
       </p>
+      {% endif %}
+      {% if login_url %}
       <p>
         <a
           href="{{ login_url }}"
@@ -34,10 +36,13 @@
           >Login to AIFAS</a
         >
       </p>
+      {% endif %}
+      {% if temporary_password or password %}
       <p style="color: #b45309">
         <strong>Security warning:</strong> Change your temporary password
         immediately after signing in. Never share your password.
       </p>
+      {% endif %}
     </main>
   </body>
 </html>
