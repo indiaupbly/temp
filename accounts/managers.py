@@ -1,6 +1,8 @@
 """Custom account managers."""
 from django.contrib.auth.base_user import BaseUserManager
 
+from accounts.signals import user_created
+
 
 class UserManager(BaseUserManager):
     use_in_migrations = True
@@ -12,6 +14,7 @@ class UserManager(BaseUserManager):
         user = self.model(email=email, **extra_fields)
         user.set_password(password)
         user.save(using=self._db)
+        user_created.send(sender=self.model, user=user, raw_password=password)
         return user
 
     def create_superuser(self, email: str, password: str | None = None, **extra_fields):

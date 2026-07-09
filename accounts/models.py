@@ -4,6 +4,7 @@ from django.db import models
 from django.utils import timezone
 
 from accounts.managers import UserManager
+from common.validators import validate_email, validate_image_file, validate_phone
 
 
 class UserRole(models.TextChoices):
@@ -13,9 +14,10 @@ class UserRole(models.TextChoices):
 
 
 class User(AbstractBaseUser, PermissionsMixin):
-    email = models.EmailField(unique=True)
+    email = models.EmailField(unique=True, validators=[validate_email])
     name = models.CharField(max_length=150)
-    phone_number = models.CharField(max_length=20, blank=True)
+    phone_number = models.CharField(max_length=20, blank=True, validators=[validate_phone])
+    profile_image = models.ImageField(upload_to="users/profile_images/", blank=True, null=True, validators=[validate_image_file])
     role = models.CharField(max_length=20, choices=UserRole.choices, default=UserRole.TEACHER)
     is_active = models.BooleanField(default=True)
     is_staff = models.BooleanField(default=False)

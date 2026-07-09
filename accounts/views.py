@@ -1,14 +1,16 @@
 """Authentication API views."""
 from django.conf import settings
+from django.shortcuts import get_object_or_404
 from rest_framework import status
 from rest_framework.generics import GenericAPIView
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework_simplejwt.exceptions import TokenError
 
-from accounts.serializers import EmptySerializer, LoginSerializer, UserSerializer
-from accounts.services import login_user, logout_user, refresh_user_tokens
+from accounts.models import User
+from accounts.serializers import ChangePasswordSerializer, EmptySerializer, LoginSerializer, UserSerializer
+from accounts.services import change_user_password, login_user, logout_user, refresh_user_tokens
 from accounts.utils import delete_token_cookie, set_token_cookie
-from common.responses import error_response, success_response
+from common.responses import error_response, success_response, updated_response
 
 
 class LoginView(GenericAPIView):
@@ -60,3 +62,21 @@ class MeView(GenericAPIView):
 
     def get(self, request, *args, **kwargs):
         return success_response("Profile fetched successfully.", {"user": self.get_serializer(request.user).data})
+
+
+class ChangePasswordView(GenericAPIView):
+    serializer_class = ChangePasswordSerializer
+    permission_classes = (IsAuthenticated,)
+
+    def get_target_user(self):
+        user_id = self.kwargs.get("user_id")
+        if user_id is None:
+            return self.request.user
+        return get_object_or_404(User, pk=user_id)
+
+    def post(self, request, *args, **kwargs):
+        target_user = self.get_target_user()
+        serializer = self.get_serializer(data=request.data, context={"request": request, "target_user": target_user})
+        serializer.is_valid(raise_exception=True)
+        change_user_password(target_user, serializer.validated_data["new_password"], changed_by=request.user)
+        return updated_response("Password changed successfully.")
