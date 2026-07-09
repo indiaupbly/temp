@@ -1,0 +1,7 @@
+"""Shared permission helpers."""
+from rest_framework.permissions import BasePermission
+
+
+class IsActiveUser(BasePermission):
+    def has_permission(self, request, view) -> bool:
+        return bool(request.user and request.user.is_authenticated and request.user.is_active)
