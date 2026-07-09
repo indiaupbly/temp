@@ -1,30 +1,24 @@
 """Business logic for authentication workflows."""
 import logging
 
-from django.conf import settings
 from django.db import transaction
 from rest_framework_simplejwt.exceptions import TokenError
-from rest_framework_simplejwt.tokens import RefreshToken
+
+from accounts.signals import password_changed
+from accounts.tokens import blacklist, generate_pair, rotate_refresh
 
 logger = logging.getLogger(__name__)
-
-
-def _tokens_for_user(user) -> dict[str, str]:
-    refresh = RefreshToken.for_user(user)
-    return {"refresh": str(refresh), "access": str(refresh.access_token)}
 
 
 @transaction.atomic
 def login_user(user) -> dict[str, object]:
     logger.info("User logged in: %s", user.email)
-    return {"user": user, "tokens": _tokens_for_user(user)}
+    return {"user": user, "tokens": generate_pair(user)}
 
 
 def logout_user(refresh_token: str | None) -> None:
-    if not refresh_token:
-        return
     try:
-        RefreshToken(refresh_token).blacklist()
+        blacklist(refresh_token)
     except TokenError:
         logger.warning("Attempted logout with invalid refresh token.")
 
@@ -32,14 +26,11 @@ def logout_user(refresh_token: str | None) -> None:
 def refresh_user_tokens(refresh_token: str | None) -> dict[str, str]:
     if not refresh_token:
         raise TokenError("Refresh token cookie is missing.")
-    refresh = RefreshToken(refresh_token)
-    access_token = str(refresh.access_token)
-    tokens = {"access": access_token, "refresh": str(refresh)}
-    if settings.SIMPLE_JWT.get("ROTATE_REFRESH_TOKENS"):
-        if settings.SIMPLE_JWT.get("BLACKLIST_AFTER_ROTATION"):
-            refresh.blacklist()
-        refresh.set_jti()
-        refresh.set_exp()
-        refresh.set_iat()
-        tokens["refresh"] = str(refresh)
-    return tokens
+    return rotate_refresh(refresh_token)
+
+
+@transaction.atomic
+def change_user_password(user, new_password: str, *, changed_by=None) -> None:
+    user.set_password(new_password)
+    user.save(update_fields=["password", "updated_at"])
+    password_changed.send(sender=user.__class__, user=user, changed_by=changed_by)
