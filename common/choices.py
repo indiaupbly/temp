@@ -11,7 +11,6 @@ class Gender(models.TextChoices):
 class AttendanceStatus(models.TextChoices):
     PRESENT = "PRESENT", "Present"
     ABSENT = "ABSENT", "Absent"
-    LATE = "LATE", "Late"
 
 
 class DayType(models.TextChoices):

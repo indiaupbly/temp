@@ -30,6 +30,18 @@ class DuplicateRecord(APIException):
 
 def custom_exception_handler(exc, context):
     response = exception_handler(exc, context)
-    if response is not None:
-        response.data = {"success": False, "message": str(exc.detail) if hasattr(exc, "detail") else str(exc), "data": response.data}
+    if response is None:
+        return response
+    detail = response.data
+
+    message = detail.get("detail", "Request failed.")
+
+    if isinstance(message, list):
+        message = message[0]
+
+    response.data = {
+        "success": False,
+        "message": str(message),
+        "data": detail,
+    }
     return response
