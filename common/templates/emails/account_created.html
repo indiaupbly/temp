@@ -1,1 +1,43 @@
-<!doctype html><html><body style="font-family:Arial,sans-serif;background:#f6f7fb;padding:24px"><main style="max-width:640px;margin:auto;background:white;border-radius:12px;padding:28px"><h1>Welcome to AIFAS</h1><p>Hello {{ name }},</p><p>Your AIFAS account has been created.</p><p><strong>Email:</strong> {{ email }}<br><strong>Temporary password:</strong> {{ temporary_password }}</p><p><a href="{{ login_url }}" style="background:#2563eb;color:white;padding:12px 18px;border-radius:8px;text-decoration:none">Login to AIFAS</a></p><p style="color:#b45309"><strong>Security warning:</strong> Change your temporary password immediately after signing in. Never share your password.</p></main></body></html>
+<!doctype html>
+<html>
+  <body
+    style="font-family: Arial, sans-serif; background: #f6f7fb; padding: 24px"
+  >
+    <main
+      style="
+        max-width: 640px;
+        margin: auto;
+        background: white;
+        border-radius: 12px;
+        padding: 28px;
+      "
+    >
+      <h1>Welcome to AIFAS</h1>
+      <p>Hello {{ name }},</p>
+      <p>Your AIFAS account has been created.</p>
+      <p>
+        <strong>Email:</strong> {{ email }}<br /><strong
+          >Temporary password:</strong
+        >
+        {{ temporary_password }}
+      </p>
+      <p>
+        <a
+          href="{{ login_url }}"
+          style="
+            background: #2563eb;
+            color: white;
+            padding: 12px 18px;
+            border-radius: 8px;
+            text-decoration: none;
+          "
+          >Login to AIFAS</a
+        >
+      </p>
+      <p style="color: #b45309">
+        <strong>Security warning:</strong> Change your temporary password
+        immediately after signing in. Never share your password.
+      </p>
+    </main>
+  </body>
+</html>

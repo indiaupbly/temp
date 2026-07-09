@@ -59,4 +59,4 @@ class MeView(GenericAPIView):
     permission_classes = (IsAuthenticated,)
 
     def get(self, request, *args, **kwargs):
-        return success_response("Current user retrieved successfully.", {"user": self.get_serializer(request.user).data})
+        return success_response("Profile fetched successfully.", {"user": self.get_serializer(request.user).data})
