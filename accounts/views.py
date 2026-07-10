@@ -7,6 +7,7 @@ from rest_framework.permissions import AllowAny, IsAdminUser, IsAuthenticated
 from rest_framework_simplejwt.exceptions import TokenError
 
 from accounts.models import User
+from accounts.bulk_serializers import BulkActivationSerializer
 from accounts.serializers import (
     ChangePasswordSerializer,
     EmptySerializer,
@@ -116,3 +117,18 @@ class UserActivationView(GenericAPIView):
 
     def post(self, request, user_id, *args, **kwargs):
         return self.patch(request, user_id, *args, **kwargs)
+
+
+class BulkUserActivationView(GenericAPIView):
+    serializer_class = BulkActivationSerializer
+    permission_classes = (IsAdminUser,)
+
+    def post(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        users = User.objects.filter(id__in=serializer.validated_data["user_ids"])
+        changed = 0
+        for user in users:
+            if set_user_active_status(user, serializer.validated_data["is_active"], changed_by=request.user):
+                changed += 1
+        return updated_response("User accounts updated successfully.", {"updated": changed})
