@@ -42,6 +42,6 @@ def custom_exception_handler(exc, context):
     response.data = {
         "success": False,
         "message": str(message),
-        "data": detail,
+        "errors": detail,
     }
     return response
