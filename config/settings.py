@@ -27,6 +27,8 @@ INSTALLED_APPS = [
     "cloudinary_storage",
     "common",
     "accounts",
+    "school",
+    "academic",
 ]
 
 MIDDLEWARE = [

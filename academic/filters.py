@@ -1,0 +1,1 @@
+from academic.selectors import apply_common_filters

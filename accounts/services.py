@@ -4,7 +4,7 @@ import logging
 from django.db import transaction
 from rest_framework_simplejwt.exceptions import TokenError
 
-from accounts.signals import password_changed, user_created
+from accounts.signals import account_status_changed, password_changed, user_created
 from accounts.tokens import blacklist, generate_pair, rotate_refresh
 
 logger = logging.getLogger(__name__)
@@ -53,6 +53,5 @@ def set_user_active_status(user, is_active: bool, *, changed_by=None) -> bool:
         "activated" if is_active else "deactivated",
         getattr(changed_by, "email", changed_by),
     )
-    if is_active:
-        user_created.send(sender=user.__class__, user=user, raw_password=None, created_by=changed_by)
+    account_status_changed.send(sender=user.__class__, user=user, is_active=is_active, changed_by=changed_by)
     return True
