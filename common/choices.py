@@ -17,3 +17,4 @@ class DayType(models.TextChoices):
     WORKING = "WORKING", "Working Day"
     HOLIDAY = "HOLIDAY", "Holiday"
     WEEKEND = "WEEKEND", "Weekend"
+    EVENT = "EVENT", "Event"
